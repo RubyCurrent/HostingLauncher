@@ -86,6 +86,17 @@ jobs:
           grep -n "Cost Launcher" app_pojavlauncher/build.gradle app_pojavlauncher/src/main/res/values/strings.xml app_pojavlauncher/src/main/res/values-ru/strings.xml
           grep -n "applicationId" app_pojavlauncher/build.gradle
 
+      - name: Replace launcher icon
+        run: |
+          RES=app_pojavlauncher/src/main/res
+          for d in mdpi:48:108 hdpi:72:162 xhdpi:96:216 xxhdpi:144:324 xxxhdpi:192:432; do
+            IFS=: read dpi s fg <<< "$d"
+            convert icon.png -resize ${s}x${s} $RES/mipmap-$dpi/ic_launcher.webp
+            convert icon.png -resize ${s}x${s} $RES/mipmap-$dpi/ic_launcher_round.webp
+            convert icon.png -resize ${fg}x${fg} $RES/mipmap-$dpi/ic_launcher_foreground.webp
+            convert -size ${fg}x${fg} xc:'#000000' $RES/mipmap-$dpi/ic_launcher_background.webp
+          done
+          
       - name: Find Amethyst name
         run: |
           grep -rn "Amethyst" app_pojavlauncher/src/main/AndroidManifest.xml app_pojavlauncher/build.gradle || true
