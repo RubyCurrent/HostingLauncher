@@ -1,15 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="control_button_color">#4CC4C4C4</color>
-    <color name="control_button_pressed_color">#4D000000</color>
 
-    <color name="minebutton_color">#9649b8</color>
-    <color name="background_app">#181818</color>
-    <color name="divider">@color/background_overlay</color>
-    <color name="background_overlay">#464646</color>
-    <color name="background_status_bar">#242424</color>
-    <color name="background_bottom_bar">#232323</color>
+    <!-- Controls -->
+    <color name="control_button_color">#4C36C96B</color>
+    <color name="control_button_pressed_color">#8030A957</color>
 
+    <!-- Main accent -->
+    <color name="minebutton_color">#20C968</color>
+
+    <!-- Backgrounds -->
+    <color name="background_app">#0B0F0C</color>
+    <color name="divider">#29382E</color>
+    <color name="background_overlay">#29382E</color>
+    <color name="background_status_bar">#070B08</color>
+    <color name="background_bottom_bar">#111A13</color>
+
+    <!-- Text -->
     <color name="primary_text">#FFFFFF</color>
-    <color name="secondary_text">#B2B2B2</color>
+    <color name="secondary_text">#A5B5A8</color>
+
+    <!-- Cost Launcher -->
+    <color name="cost_purple">#20C968</color>
+    <color name="cost_purple_light">#65E995</color>
+    <color name="cost_purple_dark">#147A40</color>
+    <color name="cost_card">#152019</color>
+    <color name="cost_card_pressed">#203728</color>
+    <color name="cost_border">#315B3D</color>
+    <color name="cost_success">#65E995</color>
+    <color name="cost_error">#FF626D</color>
+
 </resources>
