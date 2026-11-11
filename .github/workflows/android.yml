@@ -80,9 +80,10 @@ jobs:
           
       - name: Rename to Cost Launcher
         run: |
-          sed -i 's|<string name="app_name">[^<]*</string>|<string name="app_name">Cost Launcher</string>|' app_pojavlauncher/src/main/res/values/strings.xml
+          sed -i 's|"Amethyst (Debug)"|"Cost Launcher"|g; s|"Amethyst"|"Cost Launcher"|g' app_pojavlauncher/build.gradle
           sed -i -E "s|(applicationId[ =]+)[\"'][^\"']*[\"']|\1\"com.costlite.launcher\"|" app_pojavlauncher/build.gradle
-          grep -n "app_name" app_pojavlauncher/src/main/res/values/strings.xml
+          sed -i -E 's|(name="app_name"[^>]*>)[^<]*<|\1Cost Launcher<|; s|(name="app_short_name"[^>]*>)[^<]*<|\1Cost Launcher<|' app_pojavlauncher/src/main/res/values/strings.xml app_pojavlauncher/src/main/res/values-ru/strings.xml
+          grep -n "Cost Launcher" app_pojavlauncher/build.gradle app_pojavlauncher/src/main/res/values/strings.xml app_pojavlauncher/src/main/res/values-ru/strings.xml
           grep -n "applicationId" app_pojavlauncher/build.gradle
 
       - name: Find Amethyst name
