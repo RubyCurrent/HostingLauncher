@@ -84,6 +84,12 @@ jobs:
           sed -i -E "s|(applicationId[ =]+)[\"'][^\"']*[\"']|\1\"com.costlite.launcher\"|" app_pojavlauncher/build.gradle
           grep -n "app_name" app_pojavlauncher/src/main/res/values/strings.xml
           grep -n "applicationId" app_pojavlauncher/build.gradle
+
+      - name: Find Amethyst name
+        run: |
+          grep -rn "Amethyst" app_pojavlauncher/src/main/AndroidManifest.xml app_pojavlauncher/build.gradle || true
+          grep -rn "Amethyst" app_pojavlauncher/src/main/res/values/ app_pojavlauncher/src/main/res/values-ru/ || true
+          grep -n "label" app_pojavlauncher/src/main/AndroidManifest.xml | head -20
           
       - name: Build Debug .apk
         run: |
