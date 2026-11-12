@@ -62,6 +62,73 @@ jobs:
           grep -n "Cost Launcher" app_pojavlauncher/build.gradle app_pojavlauncher/src/main/res/values/strings.xml
           grep -n "applicationId" app_pojavlauncher/build.gradle
 
+      - name: Emerald black theme
+        run: |
+          pip install pillow numpy
+          python3 - <<'EOF'
+          import re, glob, os, colorsys
+          import numpy as np
+          from PIL import Image
+
+          def recolor_rgb(r, g, b):
+              r, g, b = r / 255, g / 255, b / 255
+              hh, l, s = colorsys.rgb_to_hls(r, g, b)
+              if s > 0.15 and 0.68 <= hh <= 0.95:
+                  r, g, b = colorsys.hls_to_rgb(160 / 360, l, s)
+                  return round(r * 255), round(g * 255), round(b * 255)
+              return None
+
+          def xml_shift(m):
+              h = m.group(1)
+              a, rgb = (h[:2], h[2:]) if len(h) == 8 else ('', h)
+              res = recolor_rgb(*[int(rgb[i:i+2], 16) for i in (0, 2, 4)])
+              if res:
+                  return '#' + a + '%02X%02X%02X' % res
+              return m.group(0)
+
+          def java_shift(m):
+              h = m.group(2)
+              res = recolor_rgb(*[int(h[i:i+2], 16) for i in (2, 4, 6)])
+              if res:
+                  return m.group(1) + h[:2] + '%02X%02X%02X' % res
+              return m.group(0)
+
+          base = 'app_pojavlauncher/src/main/'
+          for f in glob.glob(base + 'res/**/*.xml', recursive=True):
+              t = open(f, encoding='utf-8').read()
+              n = re.sub(r'#([0-9A-Fa-f]{8}|[0-9A-Fa-f]{6})\b', xml_shift, t)
+              if n != t:
+                  open(f, 'w', encoding='utf-8').write(n)
+                  print('xml', f)
+
+          for f in glob.glob(base + 'java/**/*.java', recursive=True):
+              t = open(f, encoding='utf-8').read()
+              n = re.sub(r'(0x)([0-9A-Fa-f]{8})\b', java_shift, t)
+              if n != t:
+                  open(f, 'w', encoding='utf-8').write(n)
+                  print('java', f)
+
+          for f in glob.glob(base + 'res/**/*', recursive=True):
+              if 'mipmap' in os.path.dirname(f) or not f.lower().endswith(('.png', '.webp')):
+                  continue
+              try:
+                  im = Image.open(f).convert('RGBA')
+                  alpha = im.getchannel('A')
+                  hsv = np.array(im.convert('RGB').convert('HSV'))
+                  mask = (hsv[..., 0] >= 173) & (hsv[..., 0] <= 240) & (hsv[..., 1] > 38)
+                  if mask.any():
+                      hsv[..., 0][mask] = 113
+                      out = Image.fromarray(hsv, 'HSV').convert('RGB')
+                      out.putalpha(alpha)
+                      if f.lower().endswith('.webp'):
+                          out.save(f, 'WEBP', lossless=True)
+                      else:
+                          out.save(f)
+                      print('img', f)
+              except Exception as e:
+                  print('skip', f, e)
+          EOF
+
       - name: Replace launcher icon
         run: |
           RES=app_pojavlauncher/src/main/res
@@ -73,28 +140,10 @@ jobs:
             convert -size ${fg}x${fg} xc:'#000000' $RES/mipmap-$dpi/ic_launcher_background.webp
           done
 
-      - name: Emerald black theme
+      - name: Report leftover purple colors
         run: |
-          python3 - <<'EOF'
-          import re, glob, colorsys
-          def shift(m):
-              h = m.group(1)
-              a, rgb = (h[:2], h[2:]) if len(h) == 8 else ('', h)
-              r, g, b = [int(rgb[i:i+2], 16) / 255 for i in (0, 2, 4)]
-              hh, l, s = colorsys.rgb_to_hls(r, g, b)
-              if s > 0.15 and 0.68 <= hh <= 0.90:
-                  r, g, b = colorsys.hls_to_rgb(160 / 360, l, s)
-                  return '#' + a + '%02X%02X%02X' % (round(r * 255), round(g * 255), round(b * 255))
-              return m.group(0)
-          base = 'app_pojavlauncher/src/main/res/'
-          for pattern in ('values/*.xml', 'drawable/*.xml', 'color/*.xml'):
-              for f in glob.glob(base + pattern):
-                  t = open(f, encoding='utf-8').read()
-                  n = re.sub(r'#([0-9A-Fa-f]{8}|[0-9A-Fa-f]{6})\b', shift, t)
-                  if n != t:
-                      open(f, 'w', encoding='utf-8').write(n)
-                      print('recolored', f)
-          EOF
+          grep -rniE "#[0-9a-f]{0,2}(7b1fa2|6200ee|bb86fc|9c27b0|8e24aa|6a1b9a|822ca8|7e57c2|673ab7)" app_pojavlauncher/src/main/res | head -40 || true
+          cat app_pojavlauncher/src/main/res/values/colors.xml | head -60 || true
 
       - name: Build Debug .apk
         run: |
