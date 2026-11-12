@@ -22,6 +22,11 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: Restore original drawables and strings
+        run: |
+          git fetch --depth=1 https://github.com/AngelAuraMC/Amethyst-Android.git v3_openjdk
+          git checkout FETCH_HEAD -- app_pojavlauncher/src/main/res/drawable app_pojavlauncher/src/main/res/values
+
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
@@ -96,7 +101,30 @@ jobs:
             convert icon.png -resize ${fg}x${fg} $RES/mipmap-$dpi/ic_launcher_foreground.webp
             convert -size ${fg}x${fg} xc:'#000000' $RES/mipmap-$dpi/ic_launcher_background.webp
           done
-          
+
+      - name: Emerald black theme
+        run: |
+          python3 - <<'EOF'
+          import re, glob, colorsys
+          def shift(m):
+              h = m.group(1)
+              a, rgb = (h[:2], h[2:]) if len(h) == 8 else ('', h)
+              r, g, b = [int(rgb[i:i+2], 16) / 255 for i in (0, 2, 4)]
+              hh, l, s = colorsys.rgb_to_hls(r, g, b)
+              if s > 0.15 and 0.68 <= hh <= 0.90:
+                  r, g, b = colorsys.hls_to_rgb(160 / 360, l, s)
+                  return '#' + a + '%02X%02X%02X' % (round(r * 255), round(g * 255), round(b * 255))
+              return m.group(0)
+          base = 'app_pojavlauncher/src/main/res/'
+          for pattern in ('values/*.xml', 'drawable/*.xml', 'color/*.xml'):
+              for f in glob.glob(base + pattern):
+                  t = open(f, encoding='utf-8').read()
+                  n = re.sub(r'#([0-9A-Fa-f]{8}|[0-9A-Fa-f]{6})\b', shift, t)
+                  if n != t:
+                      open(f, 'w', encoding='utf-8').write(n)
+                      print('recolored', f)
+          EOF
+
       - name: Find Amethyst name
         run: |
           grep -rn "Amethyst" app_pojavlauncher/src/main/AndroidManifest.xml app_pojavlauncher/build.gradle || true
